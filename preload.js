@@ -2,60 +2,56 @@
 This script is injected into Patari webapp and used to communicate with host app.
 */
 
-const ipc = require('ipc');
-const path = require('path');
-const observe = require(__dirname + "/libs/observer.js");
-const dom = require(__dirname + "/libs/domhelpers.js");
+const ipc = require("ipc");
+const path = require("path");
+
+const observe = require(`${__dirname}/libs/observer.js`);
+const dom = require(`${__dirname}/libs/domhelpers.js`);
 global.ipc = ipc;
 
 
-//var last_playlist_update = 0;
-let update_atleast_after = 1000; //used to limit updates when observer below goes crazy with dom updates
-let scheduledUpdate=false;
+// var last_playlist_update = 0;
+const update_atleast_after = 1000; // used to limit updates when observer below goes crazy with dom updates
+let scheduledUpdate = false;
 
-window.onload = function(){
+window.onload = function () {
+  // add watch on changes to playlist and send the playlist to host
+  const playlistDOM = dom.getPlaylistContainer();
+  observe(playlistDOM[0], () => {
+    // cancel any previously scheduled update
+    if (scheduledUpdate) clearTimeout(scheduledUpdate);
 
-	// add watch on changes to playlist and send the playlist to host
-	let playlistDOM = dom.getPlaylistContainer();
-	observe(playlistDOM[0],function(){
-		//cancel any previously scheduled update
-		if (scheduledUpdate)
-			clearTimeout(scheduledUpdate);
-
-		scheduledUpdate = setTimeout(function(){
-			scheduledUpdate = false;
-			let list = dom.getPlaylistItems();
-			ipc.send('playlist_update',list);
-
-		},update_atleast_after)
-		
-		
-	});
-}
+    scheduledUpdate = setTimeout(() => {
+      scheduledUpdate = false;
+      const list = dom.getPlaylistItems();
+      ipc.send("playlist_update", list);
+    }, update_atleast_after);
+  });
+};
 
 
-ipc.on('mediabuttons', function(arg) {
+ipc.on("mediabuttons", (arg) => {
   console.log(arg);
-  if (arg==="playpause"){
+  if (arg === "playpause") {
   	dom.mediaPlayPause();
   }
-  if (arg==="next"){
+  if (arg === "next") {
   	dom.mediaNext();
   }
-  if (arg==="previous"){
+  if (arg === "previous") {
   	dom.mediaPrevious();
   }
 });
 
-ipc.on('playlist_play', function(arg) {
-	dom.playPlaylistItem(arg);
+ipc.on("playlist_play", (arg) => {
+  dom.playPlaylistItem(arg);
 });
 
 
-ipc.on('notify', function(arg) {
-	console.log("notify",arg)
-	let myNotification = new Notification(arg.Title,{
-		body:arg.body,
-		icon:arg.icon
-	});
+ipc.on("notify", (arg) => {
+  console.log("notify", arg);
+  const myNotification = new Notification(arg.Title, {
+    body: arg.body,
+    icon: arg.icon
+  });
 });
