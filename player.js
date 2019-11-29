@@ -13,7 +13,7 @@ class Player {
       const currentName = this.track.get("name").subject;
       this.getSongNamePromise().then((songName) => {
         if (currentName !== songName && !blacklist.includes(songName.toUpperCase())) {
-          this.track.set("name", songName.trim());
+          this.track.set("name", songName);
         }
       });
     }, 1000);
@@ -24,13 +24,13 @@ class Player {
   }
 
   getSongNamePromise() {
-    return this.mainWindow.webContents.executeJavaScript("$(\".songName\").text()", true);
+    return this.mainWindow.webContents.executeJavaScript("$(\".currentSong\").text()", true).then((songName) => songName.trim().replace(/\s\s+/g, ' '));
   }
 
   setTrackName() {
     setTimeout(() => {
       this.getSongNamePromise().then((songName) => {
-        this.track.set("name", songName.trim());
+        this.track.set("name", songName);
       });
     }, 10);
   }
