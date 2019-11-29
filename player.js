@@ -18,7 +18,7 @@ class Player {
     const blacklist = ["LOADING"];
     setInterval(() => {
       const currentName = this.track.get("name").subject;
-      this.getSongNamePromise().then((songName) => {
+      this.getSongName_P().then((songName) => {
         if (currentName !== songName && !blacklist.includes(songName.toUpperCase())) {
           this.track.set("name", songName);
         }
@@ -31,6 +31,17 @@ class Player {
       if (change.property[0] === "name") {
         const songName = this.track.get("name").subject;
         const trackIcon = fs.createWriteStream(`${__dirname}/temp.jpg`);
+        this.mainWindow.webContents.executeJavaScript("$(\".trackName\").map(function() { return $(this).text() }).toArray();", true).then((tracks)=>{
+          if(tracks.length) {
+            let i = 0;
+            tracks.forEach((t)=> {
+              if(this.cleanSongName(t).toLowerCase() == songName.toLowerCase()){
+                this.mainWindow.webContents.executeJavaScript(`$(".trackName").css("color", "#151515;"); $($(".trackName")[${i}]).css("color", "#1abc9c");`);
+              }
+              i++;
+            });
+          }
+        }).catch(e=> console.error(e));
         if (Notification.isSupported()) {
           this.mainWindow.webContents.executeJavaScript("$('img[ng-show=\"playerState.currentSongInstance\"]').attr(\"ng-src\");", true).then((link)=>{
             https.get(link, (response) => {
@@ -56,8 +67,13 @@ class Player {
     this.mainWindow = mainWindow;
   }
 
-  getSongNamePromise() {
-    return this.mainWindow.webContents.executeJavaScript("$(\".currentSong\").text()", true).then((songName) => songName.trim().replace(/\s\s+/g, ' '));
+  getSongName_P() {
+    const self = this;
+    return this.mainWindow.webContents.executeJavaScript("$(\".currentSong>.songName\").text()", true).then((songName) => self.cleanSongName(songName));
+  }
+
+  cleanSongName(songName) {
+    return songName.trim().replace(/\s\s+/g, ' ');
   }
 
   playPause() {

@@ -10,7 +10,7 @@
     "make-osx": "electron-packager . Patari --asar --platform=darwin --arch=x64 --electron-version=7.1.2 --icon=./assets/patari-logo.icns  --overwrite=force --app-bundle-id=com.patari.patariapp --helper-bundle-id=com.patari.patariapp",
     "make-win": "electron-packager . Patari --asar --platform=win32 --arch=ia32 --electron-version=7.1.2 --overwrite --icon=./assets/patari-logo.icns",
     "make-linux": "electron-packager . Patari --asar --platform=linux --arch=x64 --electron-version=7.1.2 --overwrite --icon=./assets/patari-logo.icns",
-    "make-linux-build": "electron-installer-debian --src Patari-linux-x64 --dest dist/ --arch amd64 --icon=./assets/patari-logo.icns"
+    "make-linux-build": "npm run make-linux && electron-installer-debian --src Patari-linux-x64 --dest dist/ --arch amd64 --icon=./assets/patari-logo.icns"
   },
   "repository": {
     "type": "git",
