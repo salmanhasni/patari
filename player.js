@@ -1,10 +1,17 @@
 const observe = require("observe");
+const https = require("https");
+const fs = require("fs");
+
+const {
+  Notification
+} = require("electron")
 
 class Player {
   constructor() {
     const currentTrack = { name: "" };
     this.track = observe(currentTrack);
     this.listenForSongName();
+    this.trackOnChange();
   }
 
   listenForSongName() {
@@ -19,6 +26,32 @@ class Player {
     }, 1000);
   }
 
+  trackOnChange() {
+    this.track.on("change", (change) => {
+      if (change.property[0] === "name") {
+        const songName = this.track.get("name").subject;
+        const trackIcon = fs.createWriteStream(`${__dirname}/temp.jpg`);
+        if (Notification.isSupported()) {
+          this.mainWindow.webContents.executeJavaScript("$('img[ng-show=\"playerState.currentSongInstance\"]').attr(\"ng-src\");", true).then((link)=>{
+            https.get(link, (response) => {
+              response.pipe(trackIcon);
+              trackIcon.on("finish", () => {
+                trackIcon.close(() => {
+                  const not = new Notification({
+                    icon: `${__dirname}/temp.jpg`,
+                    title: songName,
+                    silent: true
+                  });
+                  not.show();
+                });
+              });
+            });
+          });
+        }
+      }
+    });
+  }
+
   setWindow(mainWindow) {
     this.mainWindow = mainWindow;
   }
@@ -27,27 +60,16 @@ class Player {
     return this.mainWindow.webContents.executeJavaScript("$(\".currentSong\").text()", true).then((songName) => songName.trim().replace(/\s\s+/g, ' '));
   }
 
-  setTrackName() {
-    setTimeout(() => {
-      this.getSongNamePromise().then((songName) => {
-        this.track.set("name", songName);
-      });
-    }, 10);
-  }
-
   playPause() {
     this.mainWindow.webContents.executeJavaScript("$(\".playerPlay\").click()");
-    this.setTrackName();
   }
 
   nextTrack() {
     this.mainWindow.webContents.executeJavaScript("$(\".forward\").click()");
-    this.setTrackName();
   }
 
   previousTrack() {
     this.mainWindow.webContents.executeJavaScript("$(\".playerMove\").click()");
-    this.setTrackName();
   }
 }
 

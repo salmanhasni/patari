@@ -39,18 +39,7 @@ app.on("ready", () => {
     "web-preferences": { "node-integration": false }
   });
 
-  player.track.on("change", (change) => {
-    if (change.property[0] === "name") {
-      const songName = player.track.get("name").subject;
-      if (Notification.isSupported()) {
-        const not = new Notification({
-          title: songName,
-          silent: true
-        });
-        not.show();
-      }
-    }
-  });
+
   // and load the index.html of the app.
   mainWindow.loadURL("http://patari.pk");
   player.setWindow(mainWindow);
