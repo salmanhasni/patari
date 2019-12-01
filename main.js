@@ -116,7 +116,7 @@ function generateContextMenu() {
           mainWindow.webContents.send("notify", {
             Title: currentlyPlaying.songtitle,
             body: currentlyPlaying.albumtitle,
-            icon: `file:///${__dirname}/temp.jpg`
+            icon: new Tray(`${__dirname}/temp.jpg`)
           });
         });
       });
